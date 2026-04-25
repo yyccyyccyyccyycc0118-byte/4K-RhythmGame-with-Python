@@ -10,3 +10,4 @@ env/
 .vscode/
 *.so
 libsonic.so
+songs/
