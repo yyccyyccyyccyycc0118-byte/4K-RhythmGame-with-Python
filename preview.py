@@ -5,6 +5,7 @@ import glob
 import json
 import subprocess
 import global_state as g
+import mania_difficulty
 
 def show_history(map_path):
     rel_path = os.path.relpath(map_path, start=os.getcwd()).replace("\\", "/")
@@ -64,11 +65,15 @@ def preview_map(song_dict):
     duration_sec = 0
     duration_str = "00:00"
     current_json = ""
+    star_rating = 0.0
     
     def load_diff(idx):
-        nonlocal selected_diff, map_data, notes_data, total_notes, song_name, bg_surf, duration_sec, duration_str, current_json
+        nonlocal selected_diff, map_data, notes_data, total_notes, song_name, bg_surf, duration_sec, duration_str, current_json, star_rating
         selected_diff = idx % len(jsons)
         current_json = jsons[selected_diff]
+        
+        # 计算星数
+        star_rating = mania_difficulty.calculate_stars_for_json(current_json)
         
         with open(current_json, "r", encoding="utf-8") as f:
             map_data = json.load(f)
@@ -117,6 +122,7 @@ def preview_map(song_dict):
         
         lines = [
             f"歌曲名称: {song_name}",
+            f"谱面星级: {star_rating:.2f}★",
             f"歌曲难度: < {selected_diff+1}/{diff_count}  {diff_name} >",
             f"歌曲长度: {duration_str}",
             f"游戏倍速: {g.config.get('song_rate', 1.0):.1f}x",
@@ -132,7 +138,16 @@ def preview_map(song_dict):
             if not line:
                 y_offset += y_step
                 continue
-            color = (255, 255, 0) if "ENTER" in line or "[Y]" in line else (200, 255, 255) if "难度:" in line else (200, 200, 200)
+            
+            if "ENTER" in line or "[Y]" in line:
+                color = (255, 255, 0)
+            elif "星级" in line:
+                color = (255, 180, 50)  # 橙亮色突出显示星级
+            elif "难度:" in line:
+                color = (200, 255, 255)
+            else:
+                color = (200, 200, 200)
+                
             g.draw_marquee_text(g.screen, line, g.small_font, color, g.SCREEN_WIDTH // 2, y_offset, g.SCREEN_WIDTH - 20)
             y_offset += y_step
             

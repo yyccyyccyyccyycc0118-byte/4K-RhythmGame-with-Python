@@ -1,12 +1,12 @@
-# 忽略 Python 缓存和打包产物
 __pycache__/
-*.pyc
-*.build/
-*.dist/
-*.onefile-build/
-.game/
-venv/
-# 忽略本地编译的二进制文件
+*.py[cod]
+*$py.class
+build/
+dist/
+*.spec
+.venv/
+env/
+.idea/
+.vscode/
 *.so
-*.dll
-*.exe
+libsonic.so
