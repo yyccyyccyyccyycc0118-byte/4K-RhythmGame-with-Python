@@ -1,0 +1,14 @@
+{
+    "scroll_speed": 0.7000000000000001,
+    "global_offset": 0,
+    "key_bindings": [
+        "a",
+        "s",
+        "j",
+        "k"
+    ],
+    "window_width": 1920,
+    "window_height": 1080,
+    "song_rate": 1.0,
+    "fullscreen": true
+}
