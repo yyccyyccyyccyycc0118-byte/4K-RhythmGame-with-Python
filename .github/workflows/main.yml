@@ -1,0 +1,38 @@
+name: Build Mac App with Pyinstaller
+on: 
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # 这一步会自动在云端 Mac 上编译 sonic
+          pip install pygame pyinstaller sonic-python
+          
+      - name: Build with Pyinstaller
+        run: |
+          # --add-data 语法在 Mac/Linux 下是用冒号 : 分割的
+          # 这里的 main.py 会自动抓取已安装在 site-packages 里的 sonic 二进制库
+          pyinstaller --noconfirm --onedir --windowed \
+                      --add-data "SourceHanSansCN-Bold.otf:." \
+                      --add-data "config.json:." \
+                      main.py
+                           
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RhythmGame-Mac-Pyinstaller
+          path: dist/main.app
