@@ -84,6 +84,9 @@ def play_game(map_path):
         total_duration = max([n.get("end_time", n.get("time")) for n in notes_data])
 
     active_idx = 0
+    
+    # 从原始封面直接 cover 填充至 real_screen 作为背景（显示在两侧黑边）
+    g.set_real_background_from_original(map_path, map_data)
 
     while True:
         g.screen.fill((30, 30, 30)) # 背景深灰色
@@ -478,6 +481,9 @@ def play_game(map_path):
             if current_time > total_duration + 1500: # 留 1.5 秒余量
                 break
 
+    # 退出游戏时清除 real_screen 背景（结算界面无背景）
+    g.clear_real_background()
+    
     import datetime
     
     # === 结算界面 ===

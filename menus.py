@@ -43,13 +43,39 @@ def load_songs():
         
     return sorted(songs, key=lambda x: x["dir_name"])
 
+def get_first_map_data(song):
+    """从歌曲中获取第一个谱面的 JSON 数据和路径"""
+    if not song["jsons"]:
+        return None, None
+    first_json = song["jsons"][0]
+    try:
+        with open(first_json, "r", encoding="utf-8") as f:
+            map_data = json.load(f)
+        return first_json, map_data
+    except:
+        return None, None
+
 def main_menu():
     songs = load_songs()
     selected_index = 0
 
     camera_y = 0
     
+    # 背景缓存
+    prev_selected_index = -1
+    
     while True:
+        # 如果选中歌曲变更 或 显示模式切换后需要重新加载背景
+        if selected_index != prev_selected_index or g.bg_dirty:
+            g.bg_dirty = False
+            prev_selected_index = selected_index
+            song = songs[selected_index]
+            first_json, map_data = get_first_map_data(song)
+            if first_json and map_data:
+                g.set_real_background_from_original(first_json, map_data)
+            else:
+                g.clear_real_background()
+        
         g.screen.fill((40, 40, 60))
         
         # 渲染标题和设置提示 (Fixed Header)
@@ -176,10 +202,12 @@ def main_menu():
                 elif event.key == pygame.K_f and not (pygame.key.get_mods() & pygame.KMOD_CTRL):
                     g.config["fullscreen"] = not g.config.get("fullscreen", False)
                     g.set_display_mode()
+                    # 切换模式后 real_bg_surf 被重置，强制下一帧重新加载背景
+                    prev_selected_index = -1
                 elif event.key == pygame.K_r and not (pygame.key.get_mods() & pygame.KMOD_CTRL):
                     g.config["fullscreen"] = False
                     current_res = (g.config.get("window_width", 400), g.config.get("window_height", 600))
-                    available_res = [(400, 600), (600, 900), (800, 1200), (1280, 720), (1920, 1080)]
+                    available_res = [(1280, 720), (1366, 768), (1600, 900), (1920, 1080), (2560, 1440)]
                     try:
                         idx = available_res.index(current_res)
                         next_res = available_res[(idx + 1) % len(available_res)]
@@ -188,6 +216,8 @@ def main_menu():
                     g.config["window_width"] = next_res[0]
                     g.config["window_height"] = next_res[1]
                     g.set_display_mode()
+                    # 分辨率变更后强制重新加载背景
+                    prev_selected_index = -1
                     
                 elif event.key == pygame.K_RETURN:
                     g.save_config()
@@ -282,10 +312,11 @@ def settings_menu():
                     elif event.key == pygame.K_f:
                         g.config["fullscreen"] = not g.config.get("fullscreen", False)
                         g.set_display_mode()
+                        g.bg_dirty = True  # 标记背景需要重新加载
                     elif event.key == pygame.K_r:
                         g.config["fullscreen"] = False
                         current_res = (g.config.get("window_width", 400), g.config.get("window_height", 600))
-                        available_res = [(400, 600), (600, 900), (800, 1200), (1280, 720), (1920, 1080)]
+                        available_res = [(1280, 720), (1366, 768), (1600, 900), (1920, 1080), (2560, 1440)]
                         try:
                             idx = available_res.index(current_res)
                             next_res = available_res[(idx + 1) % len(available_res)]
@@ -294,6 +325,7 @@ def settings_menu():
                         g.config["window_width"] = next_res[0]
                         g.config["window_height"] = next_res[1]
                         g.set_display_mode()
+                        g.bg_dirty = True  # 标记背景需要重新加载
                         
         g.clock.tick(60)
 
